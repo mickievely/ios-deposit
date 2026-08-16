@@ -3,7 +3,7 @@
 import asyncio
 import threading
 
-from ios_deposit import run_ios_deposit_api_server, start_ios_charge_api_server_thread
+from ios_deposit.app import run_ios_deposit_api_server, start_ios_charge_api_server_thread
 
 
 async def process_charge_message_content(content: str, reply_channel=None):

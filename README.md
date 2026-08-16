@@ -165,7 +165,7 @@ pip install -e ../ios-deposit
 디스코드 자판기 봇
 
 ```python
-from ios_deposit import attach_bot
+from ios_deposit.app import attach_bot
 
 bot._charge_api_loop = bot.loop
 attach_bot(bot, process_charge_message_content, api_key="충전전용키")
@@ -174,7 +174,7 @@ attach_bot(bot, process_charge_message_content, api_key="충전전용키")
 직접 처리
 
 ```python
-from ios_deposit import attach, parse_deposit_message
+from ios_deposit.app import attach, parse_deposit_message
 
 def on_charge(message: str):
     parsed = parse_deposit_message(message)

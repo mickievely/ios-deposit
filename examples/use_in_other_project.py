@@ -7,7 +7,7 @@
   pip install -e 경로/ios-deposit
 """
 
-from ios_deposit import attach, attach_bot, parse_deposit_message
+from ios_deposit.app import attach, attach_bot, parse_deposit_message
 
 
 def on_charge(message: str):

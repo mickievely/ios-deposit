@@ -4,7 +4,19 @@ from typing import Any, Callable
 
 from ios_deposit.config.settings import Settings
 from ios_deposit.handler import resolve_loop
+from ios_deposit.parse.deposit import parse_deposit_message
 from ios_deposit.router.http import build_charge_api_handler
+
+__version__ = "0.1.3"
+
+__all__ = [
+    "attach",
+    "attach_bot",
+    "parse_deposit_message",
+    "run_ios_deposit_api_server",
+    "start_ios_charge_api_server",
+    "start_ios_charge_api_server_thread",
+]
 
 
 def start_ios_charge_api_server(
