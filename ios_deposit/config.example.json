@@ -1,0 +1,14 @@
+{
+  "host": "0.0.0.0",
+  "port": 8088,
+  "domain": "",
+  "https": true,
+  "base_path": "",
+  "allowed_hosts": [],
+  "trust_proxy": true,
+  "api_key": "",
+  "webhook_url": "",
+  "webhook_api_key": "",
+  "webhook_timeout": 10,
+  "data_dir": "data/charge_api"
+}
