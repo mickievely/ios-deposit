@@ -10,5 +10,14 @@
   "webhook_url": "",
   "webhook_api_key": "",
   "webhook_timeout": 10,
-  "data_dir": "data/charge_api"
+  "data_dir": "data/charge_api",
+  "rate_limit": 40,
+  "rate_window": 60,
+  "auth_fail_limit": 8,
+  "auth_fail_window": 300,
+  "auth_ban_seconds": 600,
+  "max_body_bytes": 50000,
+  "handler_timeout": 15,
+  "request_timeout": 15,
+  "request_queue": 64
 }

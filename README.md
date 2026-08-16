@@ -197,5 +197,13 @@ attach(on_charge, port=8088, api_key="충전전용키", loop=bot.loop)
 | `domain` | 도메인. 예: `https://pay.example.com` |
 | `webhook_url` | 웹자판기/쇼핑몰로 넘길 주소 |
 | `port` | 기본 `8088` |
+| `data_dir` | SQLite 위치. 기본 `data/charge_api` |
+| `rate_limit` | 같은 IP에서 몇 번까지 받을지. 기본 `40` |
+| `rate_window` | 그 횟수를 몇 초 안에 셀지. 기본 `60` |
+| `auth_fail_limit` | 키 틀린 횟수. 기본 `8` |
+| `auth_fail_window` | 그 실패를 몇 초 안에 셀지. 기본 `300` |
+| `auth_ban_seconds` | 그때 몇 초 막을지. 기본 `600` |
+
+받은 입금은 `data/charge_api/ios_deposit.db` 에 쌓입니다.
 
 키 넣은 `config.json` 은 깃에 올리지 마세요.

@@ -1,11 +1,31 @@
+import socket
 import threading
 from http.server import HTTPServer
+from socketserver import ThreadingMixIn
 from typing import Any, Callable
 
 from ios_deposit.config.settings import Settings
 from ios_deposit.handler import resolve_loop
 from ios_deposit.parse.deposit import parse_deposit_message
 from ios_deposit.router.http import build_charge_api_handler
+
+
+class ChargeHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+    block_on_close = False
+
+    def __init__(self, server_address, RequestHandlerClass, queue_size: int = 64):
+        self.request_queue_size = max(8, int(queue_size))
+        super().__init__(server_address, RequestHandlerClass)
+
+    def finish_request(self, request, client_address):
+        try:
+            request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        except OSError:
+            pass
+        super().finish_request(request, client_address)
+
 
 __version__ = "0.1.3"
 
@@ -41,6 +61,15 @@ def start_ios_charge_api_server(
         trust_proxy=bool(kwargs.get("trust_proxy", False)),
         api_key=api_key,
         data_dir=data_dir,
+        rate_limit=int(kwargs.get("rate_limit", 40)),
+        rate_window=int(kwargs.get("rate_window", 60)),
+        auth_fail_limit=int(kwargs.get("auth_fail_limit", 8)),
+        auth_fail_window=int(kwargs.get("auth_fail_window", 300)),
+        auth_ban_seconds=int(kwargs.get("auth_ban_seconds", 600)),
+        max_body_bytes=int(kwargs.get("max_body_bytes", 50000)),
+        handler_timeout=float(kwargs.get("handler_timeout", timeout)),
+        request_timeout=float(kwargs.get("request_timeout", 15)),
+        request_queue=int(kwargs.get("request_queue", 64)),
     )
     if settings is None:
         cfg.host = host
@@ -53,10 +82,10 @@ def start_ios_charge_api_server(
         api_key=cfg.api_key,
         data_dir=cfg.data_dir,
         loop=loop,
-        timeout=timeout,
+        timeout=cfg.handler_timeout,
         settings=cfg,
     )
-    server = HTTPServer((cfg.host, cfg.port), handler_cls)
+    server = ChargeHTTPServer((cfg.host, cfg.port), handler_cls, queue_size=cfg.request_queue)
     print(f"[ios-deposit] 수신 중  {cfg.public_url}  POST /charge")
     try:
         server.serve_forever()

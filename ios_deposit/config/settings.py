@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 from urllib.parse import urlparse
 
+from ios_deposit.data.store import DB_NAME
+
 
 def _strip_host(value: str) -> str:
     return (value or "").split(",")[0].strip().split(":")[0].lower().rstrip(".")
@@ -16,6 +18,22 @@ def _safe_webhook_url(url: str) -> str:
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
         return ""
     return url
+
+
+def _as_int(value, default: int, lo: int, hi: int) -> int:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        number = default
+    return max(lo, min(hi, number))
+
+
+def _as_float(value, default: float, lo: float, hi: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        number = default
+    return max(lo, min(hi, number))
 
 
 @dataclass
@@ -35,7 +53,12 @@ class Settings:
     rate_limit: int = 40
     rate_window: int = 60
     auth_fail_limit: int = 8
+    auth_fail_window: int = 300
     auth_ban_seconds: int = 600
+    max_body_bytes: int = 50000
+    handler_timeout: float = 15
+    request_timeout: float = 15
+    request_queue: int = 64
 
     @classmethod
     def from_dict(cls, cfg: dict, *, data_dir: Optional[str] = None) -> "Settings":
@@ -62,7 +85,7 @@ class Settings:
 
         return cls(
             host=str(cfg.get("host", "0.0.0.0")),
-            port=int(cfg.get("port", 8088)),
+            port=_as_int(cfg.get("port", 8088), 8088, 1, 65535),
             domain=domain,
             https=https,
             base_path=base_path,
@@ -71,13 +94,24 @@ class Settings:
             api_key=str(cfg.get("api_key", "") or ""),
             webhook_url=_safe_webhook_url(str(cfg.get("webhook_url", "") or "").strip()),
             webhook_api_key=str(cfg.get("webhook_api_key", "") or "").strip(),
-            webhook_timeout=float(cfg.get("webhook_timeout", 10)),
+            webhook_timeout=_as_float(cfg.get("webhook_timeout", 10), 10, 1, 120),
             data_dir=data_dir if data_dir is not None else str(cfg.get("data_dir", "data/charge_api")),
-            rate_limit=int(cfg.get("rate_limit", 40)),
-            rate_window=int(cfg.get("rate_window", 60)),
-            auth_fail_limit=int(cfg.get("auth_fail_limit", 8)),
-            auth_ban_seconds=int(cfg.get("auth_ban_seconds", 600)),
+            rate_limit=_as_int(cfg.get("rate_limit", 40), 40, 1, 10000),
+            rate_window=_as_int(cfg.get("rate_window", 60), 60, 1, 86400),
+            auth_fail_limit=_as_int(cfg.get("auth_fail_limit", 8), 8, 1, 1000),
+            auth_fail_window=_as_int(cfg.get("auth_fail_window", 300), 300, 1, 86400),
+            auth_ban_seconds=_as_int(cfg.get("auth_ban_seconds", 600), 600, 1, 86400),
+            max_body_bytes=_as_int(cfg.get("max_body_bytes", 50000), 50000, 1024, 1_000_000),
+            handler_timeout=_as_float(
+                cfg.get("handler_timeout", cfg.get("timeout", 15)), 15, 1, 120
+            ),
+            request_timeout=_as_float(cfg.get("request_timeout", 15), 15, 1, 120),
+            request_queue=_as_int(cfg.get("request_queue", 64), 64, 8, 1024),
         )
+
+    @property
+    def db_path(self) -> str:
+        return os.path.join(self.data_dir, DB_NAME)
 
     @property
     def public_url(self) -> str:

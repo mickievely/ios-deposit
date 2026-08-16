@@ -33,7 +33,11 @@ def forward_to_webhook(
         webhook_url,
         data=body,
         method="POST",
-        headers={"Content-Type": "application/json; charset=utf-8"},
+        headers={
+            "Content-Type": "application/json; charset=utf-8",
+            "Content-Length": str(len(body)),
+            "Connection": "close",
+        },
     )
     if api_key:
         req.add_header("X-API-Key", api_key)

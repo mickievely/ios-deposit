@@ -85,6 +85,9 @@ def main(base_dir: str = None):
         print(f"  api_key  가 없거나 {MIN_KEY_LEN}자보다 짧습니다. config.json 에 충전 전용 키를 넣으세요.")
         sys.exit(1)
     print("  api_key  사용 중 (헤더 X-API-Key)")
+    print(f"  sqlite   {cfg.db_path}")
+    print(f"  rate     {cfg.rate_limit}회 / {cfg.rate_window}초")
+    print(f"  ban      키 실패 {cfg.auth_fail_limit}회 / {cfg.auth_fail_window}초 → {cfg.auth_ban_seconds}초")
     if cfg.webhook_url:
         print(f"  webhook  {cfg.webhook_url}")
     else:
